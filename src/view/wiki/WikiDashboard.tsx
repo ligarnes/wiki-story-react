@@ -36,7 +36,15 @@ export const WikiDashboard: FunctionComponent<Props> = (props: Props) => {
       });
   }
 
-  useEffect(() => loadWiki(), [props.wikiId]);
+  useEffect(() => {
+    getApplication().serviceLocator.wikiService.getWiki(props.wikiId)
+      .then((wiki) => {
+        setWiki(wiki);
+      })
+      .catch((e: RequestException) => {
+        getApplication().notificationManager.errorNotification(['Failed to retrieved the article', e.message]);
+      });
+  }, [props.wikiId]);
 
   const groupCards = wiki.groupList.map(group => {
     const generateLink = () => {
