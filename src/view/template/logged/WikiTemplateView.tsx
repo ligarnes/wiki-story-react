@@ -79,6 +79,18 @@ export const WikiTemplateView: FunctionComponent<Props> = (props: React.PropsWit
     document: newDefaultFolder(wiki, undefined)
   } as { open: boolean, document: WikiDocument })
 
+  const reloadWiki = (reason: string) => {
+    getApplication().serviceLocator.wikiService.getWiki(props.wikiId)
+      .then((wiki) => {
+        setWiki(wiki);
+        getApplication().notificationManager.successNotification(reason);
+      })
+      .catch((e: RequestException) => {
+        setHasError(true)
+        getApplication().notificationManager.errorNotification(['Failed to retrieved the wiki', e.message]);
+      });
+  }
+
   useEffect(() => {
     getApplication().serviceLocator.wikiService.getWiki(props.wikiId)
       .then((wiki) => {
@@ -108,16 +120,15 @@ export const WikiTemplateView: FunctionComponent<Props> = (props: React.PropsWit
 
   const createArticle = (article: PageArticle) => {
     getApplication().serviceLocator.wikiService.createDocument(article)
-      .then(() => getApplication().notificationManager.successNotification(`Article ${article.title} created successfully`))
+      .then(() => reloadWiki(`Article ${article.title} created successfully`))
       .catch(err => getApplication().notificationManager.errorNotification(["Failed to create the article", err.message]));
   }
 
   const createFolder = (folder: Folder) => {
     getApplication().serviceLocator.wikiService.createDocument(folder)
-      .then(r => getApplication().notificationManager.successNotification(`Folder ${folder.title} created successfully`))
+      .then(() => reloadWiki(`Folder ${folder.title} created successfully`))
       .catch(err => getApplication().notificationManager.errorNotification(["Failed to create the folder", err.message]));
   }
-
 
   const documentSubmitHandler = (document: WikiDocument) => {
     if (document.documentType === "article") {
@@ -125,6 +136,7 @@ export const WikiTemplateView: FunctionComponent<Props> = (props: React.PropsWit
     } else if (document.documentType === "folder") {
       createFolder(document as Folder);
     }
+    setEditDocumentForm({open: false, document: document})
   }
 
   return (
@@ -146,7 +158,8 @@ export const WikiTemplateView: FunctionComponent<Props> = (props: React.PropsWit
                                   cancel={() => setEditDocumentForm({open: false, document: editDocumentForm.document})}
                                   wikiInfo={wiki} defaultDocument={editDocumentForm.document}/>
               <Box my={2}> <Divider variant="middle"/> </Box>
-              <DocumentTree wikiInfo={wiki} selectedId={props.documentId}/>
+              <DocumentTree wikiInfo={wiki} selectedId={props.documentId}
+                            createArticle={createArticle} createFolder={createFolder}/>
             </>
         }
       </DrawerComponent>

@@ -14,6 +14,9 @@ import theme from "../../theme/theme";
 export interface Props {
   wikiInfo: WikiComplete;
   selectedId?: string;
+
+  createFolder: (folder: Folder) => void;
+  createArticle: (article: PageArticle) => void;
 }
 
 export interface DocumentInfo extends Document {
@@ -172,20 +175,8 @@ export const DocumentTree: FunctionComponent<Props> = (props: React.PropsWithChi
     );
   }
 
-  const createArticle = (article: PageArticle) => {
-    getApplication().serviceLocator.wikiService.createDocument(article)
-      .then(r => getApplication().notificationManager.successNotification(`Article ${article.title} created successfully`))
-      .catch(err => getApplication().notificationManager.errorNotification(["Failed to create the article", err.message]));
-  }
-
   const editArticle = (article: PageArticle) => {
 
-  }
-
-  const createFolder = (folder: Folder) => {
-    getApplication().serviceLocator.wikiService.createDocument(folder)
-      .then(r => getApplication().notificationManager.successNotification(`Folder ${folder.title} created successfully`))
-      .catch(err => getApplication().notificationManager.errorNotification(["Failed to create the document", err.message]));
   }
 
   const editFolder = (folder: Folder) => {
@@ -199,15 +190,16 @@ export const DocumentTree: FunctionComponent<Props> = (props: React.PropsWithChi
       if (document.id) {
         editArticle(document as PageArticle);
       } else {
-        createArticle(document as PageArticle);
+        props.createArticle(document as PageArticle);
       }
     } else if (document.documentType === "folder") {
       if (document.id) {
         editFolder(document as Folder);
       } else {
-        createFolder(document as Folder);
+        props.createFolder(document as Folder);
       }
     }
+    setEditDocumentForm({open: false, document: document})
   }
 
   if (editDocumentForm.open) {
