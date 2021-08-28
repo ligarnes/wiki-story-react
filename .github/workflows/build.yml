@@ -1,0 +1,44 @@
+---
+name: build
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Build
+      - uses: actions/checkout@v2
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - run: yarn install
+      - run: yarn run build --if-present
+      - run: yarn test
+
+      # Extract meta-data
+      - name: Get version number
+        run: |
+          version=$(yarn run version)
+          echo "::set-output name=VERSION::$version"
+      - name: Publish docker image to GitHub registry
+        # Publish only snapshots
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: ligarnes/devel/${{ github.event.repository.name }}
+          tag_with_ref: true
+          add_git_labels: true

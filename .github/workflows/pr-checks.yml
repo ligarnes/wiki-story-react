@@ -1,0 +1,45 @@
+---
+name: pr-checks
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - edited
+
+jobs:
+  pr-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate ref footer
+        env:
+          PULL_REQ_TITLE: "${{ github.event.pull_request.title }}"
+          PULL_REQ_BODY: "${{ github.event.pull_request.body }}"
+        shell: python
+        run: |
+          import os
+          import re
+          title = os.environ['PULL_REQ_TITLE']
+          type = re.search(r'^([^:!()]+)(\(.+\))?\!?: .+', title).group(1)
+          body = os.environ['PULL_REQ_BODY']
+      - name: Validate breaking changes
+        env:
+          PULL_REQ_TITLE: "${{ github.event.pull_request.title }}"
+          PULL_REQ_BODY: "${{ github.event.pull_request.body }}"
+        shell: python
+        run: |
+          import os
+          import re
+          title = os.environ['PULL_REQ_TITLE']
+          body = os.environ['PULL_REQ_BODY']
+          footer = re.compile(r'^BREAKING CHANGE: .+', re.MULTILINE)
+          if "!" in title:
+            if not footer.search(body):
+              print("Missing BREAKING CHANGE footer")
+              exit(1)
+          else:
+            if footer.search(body):
+              print("Missing '!' in header")
+              exit(1)
