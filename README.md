@@ -48,7 +48,7 @@ to use this feature. However we understand that this tool wouldn’t be useful i
 ### Build the image
 
 ```
-docker build . -f Dockerfile -t codex-ui:latest
+docker pull ghcr.io/ligarnes/wiki-story-react:main
 ```
 
 ### Push the image
