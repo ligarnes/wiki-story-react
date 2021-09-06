@@ -19,6 +19,10 @@ export class BackendQueryEngineStubImpl implements BackendQueryEngine {
     return fetch(`/stub/patch${this.resourceUrl(resource)}.json`).then(res => res.json());
   }
 
+  put(resource: string, body: unknown): Promise<unknown> {
+    return fetch(`/stub/put${this.resourceUrl(resource)}.json`).then(res => res.json());
+  }
+
   private resourceUrl(resource: string): string {
     return this.replaceAll(resource, "/", "-");
   }

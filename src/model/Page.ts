@@ -9,11 +9,11 @@ function getOrDefault(o: any, propertyName: string, defaultValue: number): numbe
 
 function getDefaultPermissions(wikiInfo: WikiMinimal) {
   return wikiInfo.groupList.map(group => {
-    const defaultPermission = getOrDefault(wikiInfo.defaultPermissions as any, group.groupId, PERMISSION_NONE);
+    const defaultPermission = getOrDefault(wikiInfo.defaultPermissions as any, group.name, PERMISSION_NONE);
     return {
       group: true,
       permission: defaultPermission,
-      entityId: group.groupId,
+      entityId: group.name,
     } as Permission;
   });
 }

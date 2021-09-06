@@ -1,6 +1,7 @@
 import React, {FunctionComponent, useEffect, useState} from "react";
 import {Box, createStyles, FormControl, Grid, InputLabel, MenuItem, Select, Theme, Typography} from "@material-ui/core";
 import {
+  getPermissionIcon,
   Permission,
   PERMISSION_ADMIN,
   PERMISSION_NONE,
@@ -9,6 +10,7 @@ import {
 } from "../../../../model/Permission";
 import {WikiMinimal} from "../../../../model/Wiki";
 import {makeStyles} from "@material-ui/core/styles";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -35,7 +37,7 @@ export const EditPermissionComponent: FunctionComponent<Props> = (props: Props) 
   useEffect(() => {
     const permDesc = props.permissionList.map(perm => {
       const title = perm.group ?
-        props.wikiInfo.groupList.find(grp => grp.groupId === perm.entityId)?.name
+        props.wikiInfo.groupList.find(grp => grp.name === perm.entityId)?.name
         : "Single user";
       return {
         group: perm.group,
@@ -68,10 +70,22 @@ export const EditPermissionComponent: FunctionComponent<Props> = (props: Props) 
                 <InputLabel>{permission.title}</InputLabel>
                 <Select label={permission.title} value={permission.permission}
                         onChange={(event) => handleChange(event, permission)}>
-                  <MenuItem value={PERMISSION_NONE}> <em>None</em> </MenuItem>
-                  <MenuItem value={PERMISSION_ADMIN}>Admin</MenuItem>
-                  <MenuItem value={PERMISSION_WRITE}>Write</MenuItem>
-                  <MenuItem value={PERMISSION_READ}>Read</MenuItem>
+                  <MenuItem value={PERMISSION_NONE}>
+                    <Box component={"span"} mr={3}><FontAwesomeIcon icon={getPermissionIcon(PERMISSION_NONE)}/></Box>
+                    <em>None</em>
+                  </MenuItem>
+                  <MenuItem value={PERMISSION_ADMIN}>
+                    <Box component={"span"} mr={3}><FontAwesomeIcon icon={getPermissionIcon(PERMISSION_ADMIN)}/></Box>
+                    Admin
+                  </MenuItem>
+                  <MenuItem value={PERMISSION_WRITE}>
+                    <Box component={"span"} mr={3}><FontAwesomeIcon icon={getPermissionIcon(PERMISSION_WRITE)}/></Box>
+                    Write
+                  </MenuItem>
+                  <MenuItem value={PERMISSION_READ}>
+                    <Box component={"span"} mr={3}><FontAwesomeIcon icon={getPermissionIcon(PERMISSION_READ)}/></Box>
+                    Read
+                  </MenuItem>
                 </Select>
               </FormControl>
             </Grid>

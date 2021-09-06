@@ -1,10 +1,11 @@
 import {makeStyles} from "@material-ui/core/styles";
-import {Box, createStyles, IconButton, Menu, MenuItem, Theme, Typography} from "@material-ui/core";
+import {Box, createStyles, IconButton, Menu, MenuItem, Theme, Tooltip, Typography} from "@material-ui/core";
 import {TreeItem, TreeItemProps} from "@material-ui/lab";
 import React, {FunctionComponent} from "react";
 import {IconProp} from "@fortawesome/fontawesome-svg-core";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import {v4 as uuidv4} from "uuid";
 
 declare module 'csstype' {
   interface Properties {
@@ -23,6 +24,7 @@ type StyledTreeItemProps = TreeItemProps & {
   color?: string;
   labelIcon: IconProp;
   labelText: string;
+  icons: Array<{ icon: IconProp, color?: string, tooltip: string }>;
   options: Array<Option>;
 };
 
@@ -83,7 +85,7 @@ const useTreeItemStyles = makeStyles((theme: Theme) =>
 
 export const StyledTreeItem: FunctionComponent<StyledTreeItemProps> = (props: StyledTreeItemProps) => {
   const classes = useTreeItemStyles();
-  const {labelText, labelIcon, color, bgColor, onLabelClick, options, ...other} = props;
+  const {labelText, labelIcon, color, bgColor, onLabelClick, options, icons, ...other} = props;
 
   const style = {
     "--tree-view-color": color,
@@ -133,6 +135,14 @@ export const StyledTreeItem: FunctionComponent<StyledTreeItemProps> = (props: St
           <Typography variant="body2" className={classes.labelText}>
             {labelText}
           </Typography>
+          {
+            icons.map((val: { icon: IconProp, color?: string, tooltip: string }) => {
+              return <Tooltip title={val.tooltip}>
+                <Box mx={1} key={uuidv4()}> <FontAwesomeIcon color={val.color} icon={val.icon}/> </Box>
+              </Tooltip>
+            })
+          }
+
           <Box mx={1}>
             <IconButton aria-label="more" aria-controls="long-menu" aria-haspopup="true" color="inherit"
                         onClick={handleClick}>

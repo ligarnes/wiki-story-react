@@ -54,8 +54,8 @@ docker pull ghcr.io/ligarnes/wiki-story-react:main
 ### Push the image
 
 ```
-docker tag wiki-story-ui:latest gcr.io/gothic-envelope-266800/wiki-story-ui:latest 
-docker push gcr.io/gothic-envelope-266800/wiki-story-ui:latest
+docker tag ghcr.io/ligarnes/wiki-story-react:main gcr.io/gothic-envelope-266800/wiki-story-react:latest
+docker push gcr.io/gothic-envelope-266800/wiki-story-react:latest
 ```
 
 ### Environment
@@ -65,5 +65,5 @@ REACT_APP_BACKEND_URL: the url of the backend
 ### verify image is pushed
 
 ```
-gcloud container images list-tags gcr.io/gothic-envelope-266800/wiki-story-ui
+gcloud container images list-tags gcr.io/gothic-envelope-266800/wiki-story-react
 ```

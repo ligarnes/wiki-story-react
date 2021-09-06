@@ -48,8 +48,8 @@ export default class WikiService {
     return this.queryEngine.patch(`/wiki/${document.wikiId}/page`, document);
   }
 
-  editPermissions(document: WikiDocument): Promise<unknown> {
-    return this.queryEngine.patch(`/wiki/${document.wikiId}/page/${document.id}`, document);
+  updateDocument(document: WikiDocument): Promise<unknown> {
+    return this.queryEngine.put(`/wiki/${document.wikiId}/page/${document.id}`, document);
   }
 
   updateArticle(wikiId: string, documentId: string, newArticle: Article): Promise<PageArticle> {

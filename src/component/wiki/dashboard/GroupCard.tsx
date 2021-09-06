@@ -18,6 +18,7 @@ import {RequestException} from "../../../service/QueryEngine";
 import {TextFieldCopy} from "../../generic/TextFieldCopy";
 import {canAdmin} from "../../../model/Permission";
 import {DangerButton} from "../../generic/DangerButton";
+import {useTranslation} from "react-i18next";
 
 export interface Props {
   wiki: WikiMinimal;
@@ -27,13 +28,14 @@ export interface Props {
 }
 
 export const GroupCard: FunctionComponent<Props> = (props: Props) => {
+  const {t} = useTranslation();
   const {group, wiki} = props;
 
   const [users, setUsers] = useState([] as Array<UserProfileMinimal>);
 
   useEffect(() => {
-    if (props.group.members.length > 0) {
-      getApplication().serviceLocator.userService.getUsers(props.group.members)
+    if (group.members.length > 0) {
+      getApplication().serviceLocator.userService.getUsers(group.members)
         .then((users) => {
           setUsers(users);
         })
@@ -41,7 +43,7 @@ export const GroupCard: FunctionComponent<Props> = (props: Props) => {
           getApplication().notificationManager.errorNotification(['Failed to retrieved the users', e.message]);
         });
     }
-  }, [props.group]);
+  }, [group, group.members]);
 
   let invitationLinkItem = (<></>);
   if (group.invitationKey) {
@@ -73,7 +75,7 @@ export const GroupCard: FunctionComponent<Props> = (props: Props) => {
   return (
     <>
       <Card>
-        <CardHeader title={group.name}/>
+        <CardHeader title={t(group.name)}/>
         <CardContent>
           {users.map(u => {
             return (

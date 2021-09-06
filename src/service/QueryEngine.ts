@@ -32,6 +32,7 @@ export interface BackendQueryEngine {
   delete: (resource: string) => Promise<unknown>;
   post: (resource: string, body: unknown) => Promise<unknown>;
   patch: (resource: string, body: unknown) => Promise<unknown>;
+  put: (resource: string, body: unknown) => Promise<unknown>;
 }
 
 export class QueryEngineImpl implements BackendQueryEngine {
@@ -75,6 +76,10 @@ export class QueryEngineImpl implements BackendQueryEngine {
 
   patch = (resource: string, body: unknown): Promise<unknown> => {
     return this.query(resource, this.requestInfo('PATCH', body));
+  };
+
+  put = (resource: string, body: unknown): Promise<unknown> => {
+    return this.query(resource, this.requestInfo('PUT', body));
   };
 
   private query = (resource: string, init: RequestInit): Promise<any> => {

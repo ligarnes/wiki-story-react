@@ -1,30 +1,22 @@
-import {v4 as uuidv4} from 'uuid';
 import {getApplication} from "../Application";
-import {Permission, PERMISSION_ADMIN, PERMISSION_READ, PERMISSION_WRITE} from "./Permission";
+import {Permission, PERMISSION_ADMIN, PERMISSION_READ} from "./Permission";
 
 export function newDefaultWiki(): WikiMinimalCreate {
   const user = getApplication().serviceLocator.loginService.getUserId();
-  const gm = uuidv4();
-  const player = uuidv4();
-  const viewer = uuidv4();
 
   const defaultPermissions: { [k: string]: any } = {};
-  defaultPermissions[gm] = PERMISSION_ADMIN;
-  defaultPermissions[player] = PERMISSION_READ;
-  defaultPermissions[viewer] = PERMISSION_READ;
+  defaultPermissions["game_masters"] = PERMISSION_ADMIN;
+  defaultPermissions["players"] = PERMISSION_READ;
 
   return {
     title: "",
     groupList: [
-      {groupId: gm, name: "Game Master", members: [user]},
-      {groupId: player, name: "Players", members: []},
-      {groupId: viewer, name: "Viewers", members: []}
+      {name: "game_masters", members: [user]},
+      {name: "players", members: []},
     ],
     permissionList: [
-      {group: false, entityId: user, permission: PERMISSION_ADMIN},
-      {group: true, entityId: gm, permission: PERMISSION_WRITE},
-      {group: true, entityId: player, permission: PERMISSION_READ},
-      {group: true, entityId: viewer, permission: PERMISSION_READ}
+      {group: true, entityId: "game_masters", permission: PERMISSION_ADMIN},
+      {group: true, entityId: "players", permission: PERMISSION_READ}
     ],
     defaultPermissions: defaultPermissions
   };
@@ -32,9 +24,9 @@ export function newDefaultWiki(): WikiMinimalCreate {
 
 export function getPlayer(wiki: WikiMinimal): Player {
   const userId = getApplication().serviceLocator.loginService.getUserId();
-  const group = wiki.groupList.find(group => group.members.indexOf(userId));
+  const group = wiki.groupList.find(group => group.members.indexOf(userId) >= 0);
 
-  return {userId: userId, groupId: group?.groupId}
+  return {userId: userId, groupId: group?.name}
 }
 
 export interface WikiMinimalCreate {
@@ -53,7 +45,6 @@ export interface WikiMinimal {
 }
 
 export interface Group {
-  groupId: string;
   name: string;
   members: Array<string>;
   invitationKey?: string;
@@ -63,11 +54,11 @@ export interface WikiComplete extends WikiMinimal {
   pages: Array<DocumentDescription>;
 }
 
-export interface Document {
+export interface BaseDocument {
   permissionList: Array<Permission>;
 }
 
-export interface DocumentDescription extends Document {
+export interface DocumentDescription extends BaseDocument {
   id: string;
   title: string;
   documentType: string;

@@ -48,7 +48,7 @@ export const WikiDashboard: FunctionComponent<Props> = (props: Props) => {
 
   const groupCards = wiki.groupList.map(group => {
     const generateLink = () => {
-      getApplication().serviceLocator.wikiService.generateInvitationLink(wiki.id, group.groupId)
+      getApplication().serviceLocator.wikiService.generateInvitationLink(wiki.id, group.name)
         .then(() => {
           getApplication().notificationManager.successNotification(`Invitation link generated`);
           loadWiki();
@@ -57,7 +57,7 @@ export const WikiDashboard: FunctionComponent<Props> = (props: Props) => {
     }
 
     const deleteLink = () => {
-      getApplication().serviceLocator.wikiService.deleteInvitationLink(wiki.id, group.groupId)
+      getApplication().serviceLocator.wikiService.deleteInvitationLink(wiki.id, group.name)
         .then(() => {
           getApplication().notificationManager.successNotification(`Invitation link deleted`);
           loadWiki();
@@ -65,7 +65,7 @@ export const WikiDashboard: FunctionComponent<Props> = (props: Props) => {
         .catch(err => getApplication().notificationManager.errorNotification(["Failed to delete the invitation link", err.message]));
     }
 
-    return (<Grid item key={group.groupId} xs={4}>
+    return (<Grid item key={group.name} xs={4}>
       <GroupCard wiki={wiki} group={group} generateLink={generateLink} deleteLink={deleteLink}/></Grid>)
   });
 

@@ -16,6 +16,7 @@ import {ArticleEdit} from "./view/wiki/ArticleEdit";
 import {MyProfile} from "./view/user/MyProfile";
 import {WikiDashboard} from "./view/wiki/WikiDashboard";
 import {WikiJoinView} from "./view/wiki/WikiJoinView";
+import './i18n';
 
 initApplication()
   .then(() => {

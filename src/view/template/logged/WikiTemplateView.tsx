@@ -4,14 +4,13 @@ import clsx from "clsx";
 import {SnackNotificationComponent} from "../../../component/SnackNotificationComponent";
 import {getApplication} from "../../../Application";
 import {DRAWER_WIDTH, DrawerComponent} from "../../../component/menu/DrawerComponent";
-import {WikiComplete} from "../../../model/Wiki";
-import {RequestException} from "../../../service/QueryEngine";
 import {DocumentTree} from "../../../component/wiki/DocumentTree";
 import {Box, ButtonGroup, Divider} from "@material-ui/core";
 import {StyledButton} from "../../../component/generic/StyledButton";
 import {EditDocumentDialog} from "../../../component/wiki/pages/form/EditDocumentDialog";
-import {Folder, newDefaultArticle, newDefaultFolder, PageArticle, WikiDocument} from "../../../model/Page";
+import {newDefaultArticle, newDefaultFolder, WikiDocument} from "../../../model/Page";
 import {TopMenuWiki} from "../../../component/menu/TopMenuWiki";
+import {emptyWikiContext, loadWikiContext} from "../../../model/WikiContext";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -48,19 +47,6 @@ export interface Props {
   documentId?: string;
 }
 
-function defaultWiki() {
-  const wikiInfo: WikiComplete = {
-    id: "",
-    title: "Wiki",
-    groupList: [],
-    permissionList: [],
-    pages: [],
-    defaultPermissions: []
-  } as WikiComplete;
-
-  return wikiInfo;
-}
-
 /**
  * The WikiMinimal layout component.
  * @param {React.PropsWithChildren<unknown>} props the properties of the component
@@ -70,97 +56,95 @@ export const WikiTemplateView: FunctionComponent<Props> = (props: React.PropsWit
   const classes = useStyles();
   const [open, setOpen] = React.useState(true);
 
-  const [wiki, setWiki] = useState(defaultWiki());
-  const [loading, setLoading] = useState(false);
-  const [hasError, setHasError] = useState(false);
+  const [wikiContext, setWikiContext] = useState(emptyWikiContext())
+
+  const [loading, setLoading] = useState(true);
 
   const [editDocumentForm, setEditDocumentForm] = useState({
     open: false,
-    document: newDefaultFolder(wiki, undefined)
+    document: newDefaultFolder(wikiContext.getWiki(), undefined)
   } as { open: boolean, document: WikiDocument })
 
-  const reloadWiki = (reason: string) => {
-    getApplication().serviceLocator.wikiService.getWiki(props.wikiId)
-      .then((wiki) => {
-        setWiki(wiki);
-        getApplication().notificationManager.successNotification(reason);
-      })
-      .catch((e: RequestException) => {
-        setHasError(true)
-        getApplication().notificationManager.errorNotification(['Failed to retrieved the wiki', e.message]);
-      });
-  }
-
   useEffect(() => {
-    getApplication().serviceLocator.wikiService.getWiki(props.wikiId)
-      .then((wiki) => {
-        setLoading(false);
-        setWiki(wiki);
+    loadWikiContext(props.wikiId, props.documentId)
+      .then(wikiCtx => {
+        setWikiContext(wikiCtx)
+        setLoading(false)
       })
-      .catch((e: RequestException) => {
-        setHasError(true)
-        setLoading(false);
-        getApplication().notificationManager.errorNotification(['Failed to retrieved the article', e.message]);
-      });
-  }, [props.wikiId]);
+      .catch(err => getApplication().notificationManager.errorNotification(`Failed to load the wiki ${err}`));
+  }, [props.wikiId, props.documentId]);
 
-  const newFolder = () => {
-    setEditDocumentForm({
-      open: true,
-      document: newDefaultFolder(wiki, undefined)
-    });
+  const newDocument = (document: WikiDocument) => {
+    setEditDocumentForm({open: true, document: document});
   }
 
-  const newArticle = () => {
-    setEditDocumentForm({
-      open: true,
-      document: newDefaultArticle(wiki, undefined)
-    });
+  const editDocument = (document: WikiDocument) => {
+    setEditDocumentForm({open: true, document: document});
   }
 
-  const createArticle = (article: PageArticle) => {
-    getApplication().serviceLocator.wikiService.createDocument(article)
-      .then(() => reloadWiki(`Article ${article.title} created successfully`))
-      .catch(err => getApplication().notificationManager.errorNotification(["Failed to create the article", err.message]));
-  }
-
-  const createFolder = (folder: Folder) => {
-    getApplication().serviceLocator.wikiService.createDocument(folder)
-      .then(() => reloadWiki(`Folder ${folder.title} created successfully`))
-      .catch(err => getApplication().notificationManager.errorNotification(["Failed to create the folder", err.message]));
+  const deleteDocument = (documentId: string) => {
+    wikiContext.deleteDocument(documentId)
+      .then(wikiCtx => {
+        setWikiContext(wikiCtx);
+        getApplication().notificationManager.successNotification(`Document deleted`);
+      })
+      .catch(err => getApplication().notificationManager.errorNotification(["Failed to delete the document", err.message]));
   }
 
   const documentSubmitHandler = (document: WikiDocument) => {
-    if (document.documentType === "article") {
-      createArticle(document as PageArticle);
-    } else if (document.documentType === "folder") {
-      createFolder(document as Folder);
+    if (document.id) {
+      wikiContext.updatePermissions(document.id, document.title, document.permissionList)
+        .then(wikiCtx => {
+          setWikiContext(wikiCtx);
+          getApplication().notificationManager.successNotification(`Document ${document.title} created`);
+        })
+        .catch(err => getApplication().notificationManager.errorNotification(["Failed to update the folder", err.message]));
+    } else {
+      wikiContext.createDocument(document)
+        .then(wikiCtx => {
+          setWikiContext(wikiCtx);
+          getApplication().notificationManager.successNotification(`Document ${document.title} created`);
+        })
+        .catch(err => getApplication().notificationManager.errorNotification(["Failed to create the folder", err.message]));
     }
     setEditDocumentForm({open: false, document: document})
   }
 
+  const moveDocument = (fromId: string, toId: string) => {
+    wikiContext.moveDocument(fromId, toId)
+      .then(wikiCtx => {
+        setWikiContext(wikiCtx);
+        getApplication().notificationManager.successNotification(`Document is moved`);
+      })
+      .catch(err => getApplication().notificationManager.errorNotification(["Failed to move the document", err.message]));
+  }
+
   return (
     <div className={classes.root}>
-      <TopMenuWiki wikiMinimal={wiki} isDrawerOpen={open} handleDrawerOpen={() => setOpen(true)}/>
+      <TopMenuWiki wikiMinimal={wikiContext.getWiki()} isDrawerOpen={open} handleDrawerOpen={() => setOpen(true)}/>
       <DrawerComponent isDrawerOpen={open} handleDrawerClose={() => setOpen(false)}>
         {loading ? <div>Loading...</div> :
-          hasError ? <div>Failed to load the wiki documents.</div> :
-            <>
-              <Box display="flex" justifyContent="center" mx={2} mt={2}>
-                <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group">
-                  <StyledButton size="small" variant="contained" color="primary" onClick={newArticle}>
-                    New article
-                  </StyledButton>
-                  <StyledButton size="small" variant="contained" onClick={newFolder}>New folder</StyledButton>
-                </ButtonGroup>
-              </Box>
-              <EditDocumentDialog open={editDocumentForm.open} submit={documentSubmitHandler}
-                                  cancel={() => setEditDocumentForm({open: false, document: editDocumentForm.document})}
-                                  wikiInfo={wiki} defaultDocument={editDocumentForm.document}/>
-              <Box my={2}> <Divider variant="middle"/> </Box>
-              <DocumentTree wikiInfo={wiki} selectedId={props.documentId}
-                            createArticle={createArticle} createFolder={createFolder}/>
-            </>
+          <>
+            <Box display="flex" justifyContent="center" mx={2} mt={2}>
+              <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group">
+                <StyledButton size="small" variant="contained" color="primary"
+                              onClick={() => newDocument(newDefaultArticle(wikiContext.getWiki(), undefined))}>
+                  New article
+                </StyledButton>
+                <StyledButton size="small" variant="contained"
+                              onClick={() => newDocument(newDefaultFolder(wikiContext.getWiki(), undefined))}>
+                  New folder
+                </StyledButton>
+              </ButtonGroup>
+            </Box>
+            <EditDocumentDialog open={editDocumentForm.open} submit={documentSubmitHandler}
+                                cancel={() => setEditDocumentForm({open: false, document: editDocumentForm.document})}
+                                wikiInfo={wikiContext.getWiki()} defaultDocument={editDocumentForm.document}/>
+            <Box my={2}> <Divider variant="middle"/> </Box>
+            <DocumentTree wikiInfo={wikiContext} selectedId={props.documentId}
+                          onDocumentCreated={newDocument} onDocumentUpdated={editDocument}
+                          onDocumentDeleted={deleteDocument} onDocumentMove={moveDocument}/>
+          </>
         }
       </DrawerComponent>
       <main className={clsx(classes.content, {[classes.contentShift]: open})}>
