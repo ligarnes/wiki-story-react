@@ -2,6 +2,7 @@ import React, {FunctionComponent} from "react";
 import ReactMarkdown from "react-markdown"
 import {Box, Paper} from "@material-ui/core";
 import {ParagraphContent} from "../../../../model/ArticleContent";
+import {components} from "../../../generic/markdown/ImageExtensionRenderer";
 
 
 export interface Props {
@@ -15,7 +16,7 @@ export const ParagraphContentComponent: FunctionComponent<Props> = (props: Props
   return (
     <>
       <Box component={Paper} m={2} p={2}>
-        <ReactMarkdown>
+        <ReactMarkdown components={components}>
           {content.text}
         </ReactMarkdown>
       </Box>

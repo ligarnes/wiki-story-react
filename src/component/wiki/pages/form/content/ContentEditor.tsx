@@ -33,8 +33,7 @@ export const ContentEditor: FunctionComponent<Props> = (props: Props) => {
                 <Delete/>
               </IconButton>
             </Box>
-            <ContentEditorFactory content={c}
-                                  onChange={(content) => onChange(idx, content)}/>
+            <ContentEditorFactory content={c} onChange={(content) => onChange(idx, content)}/>
           </Box>)
         )}
       </Box>

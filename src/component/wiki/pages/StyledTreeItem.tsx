@@ -137,8 +137,8 @@ export const StyledTreeItem: FunctionComponent<StyledTreeItemProps> = (props: St
           </Typography>
           {
             icons.map((val: { icon: IconProp, color?: string, tooltip: string }) => {
-              return <Tooltip title={val.tooltip}>
-                <Box mx={1} key={uuidv4()}> <FontAwesomeIcon color={val.color} icon={val.icon}/> </Box>
+              return <Tooltip title={val.tooltip} key={uuidv4()}>
+                <Box mx={1}> <FontAwesomeIcon color={val.color} icon={val.icon}/> </Box>
               </Tooltip>
             })
           }
