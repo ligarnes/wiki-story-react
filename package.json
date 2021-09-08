@@ -19,7 +19,7 @@
     "@types/react-dom": "^17.0.0",
     "@types/react-router-dom": "^5.1.8",
     "@types/uuid": "^8.3.1",
-    "@uiw/react-md-editor": "^3.4.13",
+    "@uiw/react-md-editor": "^3.6.1",
     "date-fns": "^2.23.0",
     "i18next": "^20.6.0",
     "i18next-browser-languagedetector": "^6.1.2",
