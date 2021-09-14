@@ -17,7 +17,7 @@
     "@types/react": "^17.0.20",
     "@types/react-copy-to-clipboard": "^5.0.1",
     "@types/react-dom": "^17.0.0",
-    "@types/react-router-dom": "^5.1.8",
+    "@types/react-router-dom": "^5.1.9",
     "@types/uuid": "^8.3.1",
     "@uiw/react-md-editor": "^3.6.2",
     "date-fns": "^2.23.0",
