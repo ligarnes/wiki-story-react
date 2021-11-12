@@ -1,4 +1,4 @@
-FROM node:16-stretch as builder
+FROM node:17-stretch as builder
 WORKDIR /usr/src/app
 COPY package.json .
 RUN yarn install
