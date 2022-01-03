@@ -1,44 +1,13 @@
 import React, {FunctionComponent} from "react";
-import clsx from "clsx";
-import {makeStyles} from "@material-ui/core/styles";
-import AppBar from "@material-ui/core/AppBar";
-import Toolbar from "@material-ui/core/Toolbar";
-import Typography from "@material-ui/core/Typography";
-import IconButton from "@material-ui/core/IconButton";
-import MenuIcon from "@material-ui/icons/Menu";
+import MenuIcon from "@mui/icons-material/Menu";
 import {DRAWER_WIDTH} from "./DrawerComponent";
-import {Menu, MenuItem} from "@material-ui/core";
-import {AccountCircle} from "@material-ui/icons";
+import {AppBar, IconButton, Menu, MenuItem, Toolbar, Typography} from "@mui/material";
+import {AccountCircle} from "@mui/icons-material";
 import {useHistory} from "react-router";
-import {getApplication} from "../../Application";
-
-
-const useStyles = makeStyles(theme => ({
-  appBar: {
-    transition: theme.transitions.create(["margin", "width"], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen
-    })
-  },
-  appBarShift: {
-    width: `calc(100% - ${DRAWER_WIDTH}px)`,
-    marginLeft: DRAWER_WIDTH,
-    transition: theme.transitions.create(["margin", "width"], {
-      easing: theme.transitions.easing.easeOut,
-      duration: theme.transitions.duration.enteringScreen
-    })
-  },
-  menuButton: {
-    marginRight: theme.spacing(2)
-  },
-  title: {
-    flexGrow: 1,
-  },
-  hide: {
-    display: "none"
-  },
-  offset: theme.mixins.toolbar,
-}));
+import {useRecoilValue} from "recoil";
+import {serviceLocatorAtom} from "../../atom/ServiceLocatorAtom";
+import {Theme, useTheme} from "@mui/material/styles";
+import {SxProps} from "@mui/system";
 
 export interface Props {
   title: string;
@@ -53,8 +22,10 @@ export interface Props {
  * @constructor
  */
 export const TopMenu: FunctionComponent<Props> = (props: Props) => {
-  const classes = useStyles();
   const history = useHistory();
+  const theme = useTheme();
+
+  const serviceLocator = useRecoilValue(serviceLocatorAtom);
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -75,22 +46,42 @@ export const TopMenu: FunctionComponent<Props> = (props: Props) => {
 
   const handleLogout = () => {
     setAnchorEl(null);
-    getApplication().serviceLocator.loginService.logout();
+    serviceLocator?.loginService.logout();
     history.push("/");
   };
 
+  const appBarStyle: SxProps<Theme> = {
+    transition: theme.transitions.create(["margin", "width"], {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.leavingScreen
+    }),
+    ...(props.isDrawerOpen && {
+      width: `calc(100% - ${DRAWER_WIDTH}px)`,
+      marginLeft: DRAWER_WIDTH,
+      transition: theme.transitions.create(["margin", "width"], {
+        easing: theme.transitions.easing.easeOut,
+        duration: theme.transitions.duration.enteringScreen
+      })
+    })
+  };
+
+  let menuButton = {
+    marginRight: theme.spacing(2),
+    ...(props.isDrawerOpen && {
+      display: "none"
+    })
+  }
+
   return (
     <>
-      <AppBar position="fixed" className={clsx(classes.appBar, {[classes.appBarShift]: props.isDrawerOpen})}>
+      <AppBar position="fixed" sx={appBarStyle}>
         <Toolbar>
-          <IconButton color="inherit" aria-label="open drawer" onClick={props.handleDrawerOpen} edge="start"
-                      className={clsx(classes.menuButton, props.isDrawerOpen && classes.hide)}>
+          <IconButton color="inherit" onClick={props.handleDrawerOpen} edge="start" sx={menuButton}>
             <MenuIcon/>
           </IconButton>
-          <Typography variant="h6" className={classes.title} noWrap>{props.title}</Typography>
+          <Typography variant="h6" sx={{flexGrow: 1}} noWrap>{props.title}</Typography>
           <div>
-            <IconButton aria-label="account of current user" aria-controls="menu-appbar" aria-haspopup="true"
-                        onClick={handleMenu} color="inherit">
+            <IconButton aria-controls="menu-appbar" aria-haspopup="true" onClick={handleMenu} color="inherit">
               <AccountCircle/>
             </IconButton>
             <Menu id="menu-appbar"
@@ -106,6 +97,5 @@ export const TopMenu: FunctionComponent<Props> = (props: Props) => {
           </div>
         </Toolbar>
       </AppBar>
-      <div className={classes.offset}/>
     </>);
 }

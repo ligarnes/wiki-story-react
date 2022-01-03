@@ -1,5 +1,6 @@
 import React, {FunctionComponent} from "react";
-import {Button, ButtonProps, createTheme, MuiThemeProvider, Theme} from "@material-ui/core";
+import {Button, ButtonProps} from "@mui/material";
+import {createTheme, Theme, ThemeProvider} from '@mui/material/styles';
 
 type StyledButtonProps = ButtonProps & {};
 
@@ -17,8 +18,8 @@ export const DangerButton: FunctionComponent<StyledButtonProps> = (props: Button
   const {...other} = props;
 
   return (
-    <MuiThemeProvider theme={dangerButtonTheme}>
+    <ThemeProvider theme={dangerButtonTheme}>
       <Button  {...other}/>
-    </MuiThemeProvider>
+    </ThemeProvider>
   );
 }

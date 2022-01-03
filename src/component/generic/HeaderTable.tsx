@@ -1,5 +1,5 @@
 import React, {FunctionComponent, ReactNode} from "react";
-import {Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from "@material-ui/core";
+import {Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from "@mui/material";
 
 export interface Column {
   id: string;

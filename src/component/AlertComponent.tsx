@@ -1,6 +1,5 @@
 import React from "react";
-import {Alert, AlertTitle} from "@material-ui/lab";
-import {CircularProgress} from "@material-ui/core";
+import {Alert, AlertTitle, CircularProgress} from "@mui/material";
 
 export interface Notification {
   title: string;

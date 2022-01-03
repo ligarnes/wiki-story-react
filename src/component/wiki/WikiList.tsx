@@ -1,23 +1,18 @@
-import React, {FunctionComponent, useState} from "react";
-import {Box, Button, ButtonGroup, Grid, Paper, Typography} from "@material-ui/core";
-import {newDefaultWiki, WikiMinimal, WikiMinimalCreate} from "../../model/Wiki";
+import React, {FunctionComponent, useEffect, useState} from "react";
+import {Box, Button, ButtonGroup, Grid, Pagination, Paper, Typography} from "@mui/material";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome"
 import {faEye, faTrashAlt} from "@fortawesome/free-solid-svg-icons";
-import {getApplication} from "../../Application";
 import {Page} from "../../model/Model";
 import {useHistory} from "react-router";
 import {Column, HeaderTable} from "../generic/HeaderTable";
-import {Pagination} from "@material-ui/lab";
 import FormDialog from "../generic/FormDialog";
 import {CreateWikiForm} from "./form/CreateWikiForm";
-import {makeStyles} from "@material-ui/core/styles";
-
-const useStyles = makeStyles(theme => ({
-  deleteBtn: {
-    color: theme.palette.error.dark,
-    borderColor: theme.palette.error.dark
-  },
-}));
+import {emptyWikiInfo, emptyWikiInfoCreate, newWikiInfoCreate, WikiInfo, WikiInfoCreate} from "../../model/v2/Wiki";
+import {useRecoilValue, useSetRecoilState} from "recoil";
+import {serviceLocatorAtom} from "../../atom/ServiceLocatorAtom";
+import {addNotificationSelector} from "../../atom/NotificationAtom";
+import {userAtom} from "../../atom/UserAtom";
+import {red} from "@mui/material/colors";
 
 interface WikiActionsProps {
   onWikiSelect: () => void;
@@ -25,33 +20,22 @@ interface WikiActionsProps {
 }
 
 const WikiActions: FunctionComponent<WikiActionsProps> = (props: WikiActionsProps) => {
-  const classes = useStyles();
   return <Grid container spacing={0}>
     <ButtonGroup size="small" aria-label="small button group">
-      <Button color="primary" onClick={props.onWikiSelect}><FontAwesomeIcon icon={faEye}/></Button>
-      <Button className={classes.deleteBtn} onClick={props.onWikiDelete}><FontAwesomeIcon icon={faTrashAlt}/></Button>
+      <Button color="primary" variant="contained" onClick={props.onWikiSelect}>
+        <FontAwesomeIcon icon={faEye}/>
+      </Button>
+      <Button sx={{backgroundColor: red[900]}} variant="contained" onClick={props.onWikiDelete}>
+        <FontAwesomeIcon icon={faTrashAlt}/>
+      </Button>
     </ButtonGroup>
   </Grid>
 }
 
-function convertWiki(wiki: WikiMinimal, onWikiSelect: () => void) {
-
-  const onWikiDelete = () => {
-    getApplication().serviceLocator.wikiService.delete(wiki.id)
-      .then(() => getApplication().notificationManager.successNotification(`Wiki ${wiki.id} was deleted successfully`))
-      .catch(() => getApplication().notificationManager.errorNotification(`Failed to delete Wiki ${wiki.id}`));
-  }
-
-  return {
-    id: wiki.id,
-    title: wiki.title,
-    actions: (<WikiActions onWikiSelect={onWikiSelect} onWikiDelete={onWikiDelete}/>)
-  };
-}
-
 export interface Props {
-  page: Page<WikiMinimal>;
+  page: Page<WikiInfo>;
   onPageChange: (event: React.ChangeEvent<unknown>, value: number) => void;
+  onDataChanged: () => void;
 }
 
 export const WikiList: FunctionComponent<Props> = (props: Props) => {
@@ -61,22 +45,52 @@ export const WikiList: FunctionComponent<Props> = (props: Props) => {
   const {page} = props;
 
   const [createOpen, setCreateOpen] = useState(false);
-  const [wiki, setWiki] = useState(newDefaultWiki());
+  const user = useRecoilValue(userAtom);
+  const [wikiCreate, setWikiCreate] = useState(emptyWikiInfoCreate());
 
-  const columns: Array<Column> = [{id: "title", label: "Title"},
-    {id: "actions", label: "Actions", align: 'center'}];
-  const datas = page.datas.map((wiki: WikiMinimal) => convertWiki(wiki, () => history.push(`/wiki/${wiki.id}/`)));
+  const serviceLocator = useRecoilValue(serviceLocatorAtom);
+  const addNotification = useSetRecoilState(addNotificationSelector);
+
+  useEffect(() => {
+    setWikiCreate(newWikiInfoCreate(user));
+  }, [user])
+
+  const convertWiki = (wiki: WikiInfo, onWikiSelect: () => void) => {
+    const onWikiDelete = () => {
+      serviceLocator?.wikiService.delete(wiki.id)
+        .then(() => addNotification({
+          title: "Deleted",
+          text: `Wiki ${wiki.title} was deleted successfully`,
+          severity: "success"
+        }))
+        .catch((reason: any) => addNotification({
+          title: "Error",
+          text: `Failed to delete Wiki ${wiki.title}`,
+          severity: "error"
+        }));
+      props.onDataChanged();
+    }
+
+    return {
+      id: wiki.id,
+      title: wiki.title,
+      actions: (<WikiActions onWikiSelect={onWikiSelect} onWikiDelete={onWikiDelete}/>)
+    };
+  }
+
+  const columns: Array<Column> = [{id: "title", label: "Title"}, {id: "actions", label: "Actions", align: 'center'}];
+  const datas = page.datas.map((wiki: WikiInfo) => convertWiki(wiki, () => history.push(`/wiki/${wiki.id}/`)));
 
   const onWikiCreate = () => {
-    getApplication().serviceLocator.wikiService.createWiki(wiki)
-      .then(() => getApplication().notificationManager.successNotification("WikiMinimal created"))
-      .catch((reason: any) => getApplication().notificationManager.errorNotification(["Failed to create a new wiki", reason]))
-      .finally(() => setWiki(newDefaultWiki()));
+    serviceLocator?.wikiService.createWiki(wikiCreate)
+      .then(() => addNotification({title: "Created", text: "Wiki created", severity: "success"}))
+      .catch((reason: any) => addNotification({title: "Error", text: "Failed to create a new wiki", severity: "error"}))
     setCreateOpen(false);
+    props.onDataChanged();
   }
 
   const onCancel = () => {
-    setWiki(newDefaultWiki())
+    setWikiCreate(emptyWikiInfo())
     setCreateOpen(false);
   }
 
@@ -84,8 +98,8 @@ export const WikiList: FunctionComponent<Props> = (props: Props) => {
     setCreateOpen(true);
   }
 
-  const onChange = (newWiki: WikiMinimalCreate) => {
-    setWiki(newWiki);
+  const onChange = (newWiki: WikiInfoCreate) => {
+    setWikiCreate(newWiki);
   }
 
   return (
@@ -108,7 +122,7 @@ export const WikiList: FunctionComponent<Props> = (props: Props) => {
       </Grid>
       <div>
         <FormDialog open={createOpen} title="Create Wiki" createHandler={onWikiCreate} cancelHandler={onCancel}>
-          <CreateWikiForm wiki={wiki} onChange={onChange}/>
+          <CreateWikiForm wiki={wikiCreate} onChange={onChange}/>
         </FormDialog>
       </div>
     </>);

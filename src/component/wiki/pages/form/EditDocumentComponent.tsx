@@ -1,51 +1,62 @@
-import React, {FunctionComponent, useEffect, useState} from "react";
-import {WikiDocument} from "../../../../model/Page";
-import {Box, TextField} from "@material-ui/core";
-import {EditPermissionComponent} from "./EditPermissionComponent";
-import {Permission} from "../../../../model/Permission";
-import {WikiMinimal} from "../../../../model/Wiki";
+import React, {FunctionComponent} from "react";
+import {Box, TextField} from "@mui/material";
+import {EditPermissionComponent, Entity} from "./EditPermissionComponent";
+import {groupsSelector, wikiAtom} from "../../../../atom/WikiAtom";
+import {useRecoilValue} from "recoil";
+import {DocumentDescription, Permission} from "../../../../model/v2/Wiki";
 
 
 export interface Props {
-  wikiInfo: WikiMinimal;
-  document: WikiDocument;
-  onChange: (folder: WikiDocument) => void;
+  document: DocumentDescription;
+  onChange: (folder: DocumentDescription) => void;
 }
 
 export const EditDocumentComponent: FunctionComponent<Props> = (props: Props) => {
-  const {wikiInfo, document} = props;
+  const {document} = props;
 
-  const [title, setTitle] = useState("");
-  useEffect(() => {
-    setTitle(props.document.title);
-  }, [props.document.title]);
+  const wiki = useRecoilValue(wikiAtom);
 
   const onChange = (evt: { target: { value: string; }; }) => {
     const newTitle = evt.target.value;
-    setTitle(newTitle);
     const newDocument = {
       ...document,
-      title: newTitle,
-      wikiId: wikiInfo.id
-    } as WikiDocument;
+      title: newTitle
+    } as DocumentDescription;
     props.onChange(newDocument);
   }
 
-  const onPermissionChange = (permissionList: Array<Permission>) => {
+  const onPermissionChange = (permission: Permission) => {
     const newFolder = {
       ...document,
-      title: title,
-      permissionList: permissionList,
-      wikiId: wikiInfo.id,
-    } as WikiDocument;
+      title: document.title,
+      permission: permission
+    } as DocumentDescription;
     props.onChange(newFolder);
   }
+
+  const groups = useRecoilValue(groupsSelector);
+
+  const entities: Entity[] = groups.map(g => {
+    return {
+      id: g.name,
+      name: g.name
+    }
+  });
+
+  entities.push(...wiki.players.map(p => {
+    return {
+      id: p.userId,
+      name: p.name
+    }
+  }));
+
+  let uniqueEntities = new Set<Entity>(entities);
 
   return (
     <>
       <Box>
-        <TextField id="folderId" label="Title" variant="outlined" value={title} onChange={onChange}/>
-        <EditPermissionComponent wikiInfo={wikiInfo} permissionList={document.permissionList}
+        <TextField id="folderId" label="Title" variant="outlined" value={document.title} onChange={onChange}/>
+        <EditPermissionComponent permission={document.permission} entities={Array.from(uniqueEntities.values())}
                                  onChange={onPermissionChange}/>
       </Box>
     </>);

@@ -1,8 +1,8 @@
 import React, {FunctionComponent} from "react";
-import {Box, Button, IconButton, Paper} from "@material-ui/core";
+import {Box, Button, IconButton, Paper} from "@mui/material";
 import {ContentEditorFactory} from "./ContentEditorFactory";
 import {Content, newParagraph} from "../../../../../model/ArticleContent";
-import {Delete} from "@material-ui/icons";
+import {Delete} from "@mui/icons-material";
 
 
 export interface Props {

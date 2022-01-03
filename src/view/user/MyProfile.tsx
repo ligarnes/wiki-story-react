@@ -1,9 +1,8 @@
-import React, {FunctionComponent, useEffect, useState} from "react";
-import {Container} from "@material-ui/core";
+import React, {FunctionComponent} from "react";
+import {Container} from "@mui/material";
 import {UserProfileCard} from "../../component/UserProfileCard";
-import {emptyUserProfile} from "../../service/user/UserService";
-import {getApplication} from "../../Application";
-
+import {useRecoilValue} from "recoil";
+import {userAtom} from "../../atom/UserAtom";
 
 /**
  * The dashboard page
@@ -11,31 +10,12 @@ import {getApplication} from "../../Application";
  */
 export const MyProfile: FunctionComponent<unknown> = () => {
 
-  const [userProfile, setUserProfile] = useState(emptyUserProfile())
-  const [loading, setLoading] = useState(false);
-  const [hasError, setHasError] = useState(false);
-
-  useEffect(() => {
-    getApplication().serviceLocator.userService.getCurrentUserProfile()
-      .then((userProfile) => {
-        setLoading(false);
-        setUserProfile(userProfile);
-      })
-      .catch(e => {
-        setHasError(true)
-        setLoading(false);
-        getApplication().notificationManager.errorNotification(['Failed to retrieved the user', e]);
-      });
-  });
+  const userProfile = useRecoilValue(userAtom)
 
   return (
     <Container>
       <>
-        {loading ? <div>Loading...</div> :
-          hasError ? <div>Error occurred.</div> :
-            <>
-              <UserProfileCard userProfile={userProfile}/>
-            </>}
+        {userProfile && <UserProfileCard userProfile={userProfile}/>}
       </>
     </Container>
   );

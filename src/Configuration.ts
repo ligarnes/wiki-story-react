@@ -10,7 +10,6 @@ export default class Configuration {
     return fetch("/env-config.json")
       .then(res => res.json())
       .then(json => {
-        console.log(json);
         this.data = json
       });
   }

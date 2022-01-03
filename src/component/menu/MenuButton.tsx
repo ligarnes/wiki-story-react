@@ -1,7 +1,6 @@
 import React, {FunctionComponent} from "react";
-import IconButton from "@material-ui/core/IconButton";
-import {SvgIconComponent} from "@material-ui/icons";
-import {Menu, MenuItem} from "@material-ui/core";
+import {SvgIconComponent} from "@mui/icons-material";
+import {IconButton, Menu, MenuItem} from "@mui/material";
 
 export interface Props {
   icon: SvgIconComponent;

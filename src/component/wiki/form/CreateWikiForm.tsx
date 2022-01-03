@@ -1,10 +1,10 @@
 import React, {FunctionComponent} from "react";
-import {Grid, TextField} from "@material-ui/core";
-import {WikiMinimalCreate} from "../../../model/Wiki";
+import {Grid, TextField} from "@mui/material";
+import {WikiInfoCreate} from "../../../model/v2/Wiki";
 
 export interface Props {
-  wiki: WikiMinimalCreate;
-  onChange: (wiki: WikiMinimalCreate) => void;
+  wiki: WikiInfoCreate;
+  onChange: (wiki: WikiInfoCreate) => void;
 }
 
 /**
