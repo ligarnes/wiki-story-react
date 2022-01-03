@@ -1,37 +1,37 @@
 import React, {FunctionComponent, useEffect, useState} from "react";
 import {EditDocumentComponent} from "./EditDocumentComponent";
 import FormDialog from "../../../generic/FormDialog";
-import {Folder, WikiDocument} from "../../../../model/Page";
-import {WikiMinimal} from "../../../../model/Wiki";
-
+import {DocumentDescription} from "../../../../model/v2/Wiki";
 
 export interface Props {
-  wikiInfo: WikiMinimal;
-  defaultDocument: WikiDocument;
+  defaultDocument: DocumentDescription;
   open: boolean;
-  submit: (document: WikiDocument) => void;
+  submit: (document: DocumentDescription) => void;
   cancel: () => void;
 }
 
 export const EditDocumentDialog: FunctionComponent<Props> = (props: Props) => {
 
   const [document, setDocument] = useState({
-    id: "",
+    documentId: "",
     title: "",
     documentType: "",
-    wikiId: "",
-    permissionList: []
-  } as WikiDocument);
+    permission: {
+      admins: [],
+      writes: [],
+      reads: []
+    }
+  } as DocumentDescription);
 
   useEffect(() => setDocument(props.defaultDocument), [props.defaultDocument]);
 
-  const onChange = (newDocument: Folder) => {
+  const onChange = (newDocument: DocumentDescription) => {
     setDocument(newDocument);
   }
 
   let title = "Create a new " + props.defaultDocument.documentType;
   let primary = "Create";
-  if (props.defaultDocument.id && props.defaultDocument.id.length > 0) {
+  if (props.defaultDocument.documentId && props.defaultDocument.documentId.length > 0) {
     title = "Edit a " + props.defaultDocument.documentType;
     primary = "Edit";
   }
@@ -40,7 +40,7 @@ export const EditDocumentDialog: FunctionComponent<Props> = (props: Props) => {
     <>
       <FormDialog open={props.open} title={title} createHandler={() => props.submit(document)}
                   cancelHandler={props.cancel} primaryLabel={primary}>
-        <EditDocumentComponent wikiInfo={props.wikiInfo} document={document} onChange={onChange}/>
+        <EditDocumentComponent document={document} onChange={onChange}/>
       </FormDialog>
     </>);
 }

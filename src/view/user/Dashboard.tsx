@@ -1,6 +1,6 @@
 import React, {FunctionComponent} from "react";
-import {Container} from "@material-ui/core";
 import {WikiListPage} from "../../component/WikiListPage";
+import {Container} from "@mui/material";
 
 
 /**

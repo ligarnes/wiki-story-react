@@ -1,41 +1,31 @@
 import React, {FunctionComponent, useEffect, useState} from "react";
-import {Box, Button, ButtonGroup, Grid, Typography} from "@material-ui/core";
-import {Article, getLatestVersion, PageArticle} from "../../../model/Page";
+import {Box, Button, ButtonGroup, Grid, Typography} from "@mui/material";
 import {ContentEditor} from "./form/content/ContentEditor";
 import {Content} from "../../../model/ArticleContent";
-import {getApplication} from "../../../Application";
 import {useHistory} from "react-router";
-import {makeStyles} from "@material-ui/core/styles";
+import {useRecoilState, useRecoilValue, useSetRecoilState} from "recoil";
+import {wikiIdAtom} from "../../../atom/WikiAtom";
+import {addNotificationSelector} from "../../../atom/NotificationAtom";
+import {serviceLocatorAtom} from "../../../atom/ServiceLocatorAtom";
+import {articleAtom} from "../../../atom/ArticleAtom";
 
-const useStyles = makeStyles(theme => ({
-  title: {
-    flexGrow: 1,
-  },
-  flexContainer: {
-    display: "flex",
-    alignItems: "center"
-  }
-}));
-
-export interface Props {
-  article: PageArticle;
-  onSaved: (updated: PageArticle) => void;
-}
-
-export const EditPageArticleComponent: FunctionComponent<Props> = (props: Props) => {
-  const classes = useStyles();
+export const EditPageArticleComponent: FunctionComponent<unknown> = () => {
   const history = useHistory();
-
-  const {article} = props;
-  const data: Article = getLatestVersion(props.article);
 
   const [currentChange, setCurrentChange] = useState({
     unsaved: false,
     contentList: []
   } as { unsaved: boolean, contentList: Array<Content> });
+
+  const [article, setArticle] = useRecoilState(articleAtom);
+  const serviceLocator = useRecoilValue(serviceLocatorAtom);
+  const addNotification = useSetRecoilState(addNotificationSelector);
+
+  const wikiId = useRecoilValue(wikiIdAtom);
+
   useEffect(() => {
-    setCurrentChange({unsaved: false, contentList: data.contentList});
-  }, [article, data.contentList]);
+    setCurrentChange({unsaved: false, contentList: article.sections});
+  }, [article, article.sections]);
 
   const beforeunload = (e: BeforeUnloadEvent) => {
     if (currentChange.unsaved) {
@@ -53,31 +43,26 @@ export const EditPageArticleComponent: FunctionComponent<Props> = (props: Props)
   });
 
   const cancel = () => {
-    history.push(`/wiki/${article.wikiId}/article/${article.id}`);
+    history.push(`/wiki/${wikiId}/article/${article.documentId}`);
   }
 
   const onSave = () => {
     if (!currentChange.unsaved) {
-      getApplication().notificationManager.successNotification(`Nothing to save`);
+      addNotification({title: "Info", text: "Nothing to save", severity: "info"});
       return;
     }
 
-    const newArticle = {
-      metadata: {
-        author: getApplication().serviceLocator.loginService.getUserId(),
-        version: data.metadata.version + 1,
-        creationTime: Date.now()
-      },
-      contentList: currentChange.contentList
-    } as Article;
-    if (article.id) {
-      getApplication().serviceLocator.wikiService.updateArticle(article.wikiId, article.id, newArticle)
-        .then(updated => {
-          getApplication().notificationManager.successNotification(`Saved`);
-          props.onSaved(updated);
-        })
-        .catch(err => getApplication().notificationManager.errorNotification(["Failed to update the article", err.message]));
-    }
+    const updatedArticle = {...article};
+    updatedArticle.version = updatedArticle.version + 1;
+    updatedArticle.sections = currentChange.contentList;
+
+    serviceLocator?.articleService.updateArticle(wikiId, updatedArticle)
+      .then(() => {
+        addNotification({title: "Saved", text: "Article updated", severity: "success"});
+        setCurrentChange({unsaved: false, contentList: updatedArticle.sections})
+        setArticle(updatedArticle);
+      })
+      .catch(() => addNotification({title: "Info", text: "Failed to update the article", severity: "error"}));
   }
 
   const onChange = (contents: Array<Content>) => {
@@ -88,8 +73,11 @@ export const EditPageArticleComponent: FunctionComponent<Props> = (props: Props)
     <>
       <Grid container spacing={3}>
         <Grid item xs={12}>
-          <Box mx={3} className={classes.flexContainer}>
-            <Typography variant="h2" align="left" className={classes.title}>{article.title}</Typography>
+          <Box mx={3} sx={{
+            display: "flex",
+            alignItems: "center"
+          }}>
+            <Typography variant="h2" align="left" sx={{flexGrow: 1}}>{article.title}</Typography>
             <div>
               <ButtonGroup size="large" aria-label="small outlined button group">
                 <Button variant="contained" color="primary" onClick={onSave}>Save</Button>

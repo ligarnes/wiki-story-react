@@ -1,15 +1,6 @@
 import React, {FunctionComponent} from "react";
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Box,
-  Theme,
-  Tooltip,
-  Typography,
-  withStyles
-} from "@material-ui/core";
-import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
+import {Accordion, AccordionDetails, AccordionSummary, Box, Theme, Tooltip, Typography} from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {
   getPermissionIcon,
@@ -17,12 +8,13 @@ import {
   PERMISSION_NONE,
   PERMISSION_READ,
   PERMISSION_WRITE
-} from "../../model/Permission";
+} from "../../../model/v2/Permission";
+import {withStyles} from "@mui/styles";
 
 const CustomToolTip = withStyles((theme: Theme) => ({
   tooltip: {
     backgroundColor: theme.palette.background.default,
-    color: theme.palette.text.hint,
+    //color: theme.palette.text.hint,
     boxShadow: theme.shadows[3]
   },
 }))(Tooltip);

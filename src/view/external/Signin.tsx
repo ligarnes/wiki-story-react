@@ -10,10 +10,8 @@ import {
   Link,
   TextField,
   Typography
-} from "@material-ui/core";
-import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
-import {makeStyles} from "@material-ui/core/styles";
-import {getApplication} from "../../Application";
+} from "@mui/material";
+import LockIcon from '@mui/icons-material/Lock';
 import {RegistrationError, RegistrationRequest} from "../../service/user/LoginService";
 import AlertComponent, {
   emptyNotification,
@@ -22,7 +20,9 @@ import AlertComponent, {
   waitingNotification
 } from "../../component/AlertComponent";
 import {useHistory} from "react-router";
-
+import {useRecoilValue} from "recoil";
+import {serviceLocatorAtom} from "../../atom/ServiceLocatorAtom";
+import {useTheme} from "@mui/material/styles";
 
 function Copyright() {
   return (
@@ -37,32 +37,12 @@ function Copyright() {
   );
 }
 
-const useStyles = makeStyles((theme) => ({
-  paper: {
-    marginTop: theme.spacing(8),
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  avatar: {
-    margin: theme.spacing(1),
-    backgroundColor: theme.palette.secondary.main,
-  },
-  form: {
-    width: '100%', // Fix IE 11 issue.
-    marginTop: theme.spacing(1),
-  },
-  submit: {
-    margin: theme.spacing(3, 0, 2),
-  },
-}));
-
 /**
  * The dashboard layout component.
  * @constructor
  */
 export const Signin: FunctionComponent<unknown> = () => {
-  const classes = useStyles();
+  const theme = useTheme();
 
   const history = useHistory();
 
@@ -72,6 +52,8 @@ export const Signin: FunctionComponent<unknown> = () => {
   const [repeatPassword, setRepeatPassword] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [notification, setNotification] = useState(emptyNotification());
+
+  const serviceLocator = useRecoilValue(serviceLocatorAtom);
 
   const registerSuccess = () => {
     setNotification(successNotification('Your user registration was successful', 'You may now log-in with the username you have chosen.'));
@@ -98,7 +80,7 @@ export const Signin: FunctionComponent<unknown> = () => {
       password: password,
       acceptTerms: acceptTerms
     };
-    getApplication().serviceLocator.loginService.register(request)
+    serviceLocator?.loginService.register(request)
       .then(registerSuccess)
       .catch(registerFailed);
   }
@@ -107,15 +89,26 @@ export const Signin: FunctionComponent<unknown> = () => {
   return (
     <Container component="main" maxWidth="xs">
       <CssBaseline/>
-      <div className={classes.paper}>
-        <Avatar className={classes.avatar}>
-          <LockOutlinedIcon/>
+      <Box sx={{
+        marginTop: 8,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}>
+        <Avatar sx={{
+          margin: 1,
+          backgroundColor: theme.palette.secondary.main,
+        }}>
+          <LockIcon/>
         </Avatar>
         <Typography component="h1" variant="h5">
           Create a new account
         </Typography>
         <AlertComponent notification={notification}/>
-        <div className={classes.form}>
+        <Box sx={{
+          width: '100%', // Fix IE 11 issue.
+          marginTop: theme.spacing(1),
+        }}>
           <form onSubmit={register}>
             <TextField variant="outlined" margin="normal" required fullWidth id="username" label="Username"
                        name="username" autoComplete="username" autoFocus
@@ -132,12 +125,12 @@ export const Signin: FunctionComponent<unknown> = () => {
               control={<Checkbox checked={acceptTerms} color="primary"
                                  onChange={e => setAcceptTerms(e.target.checked)}/>}
               label="I agree to the Terms and Conditions"/>
-            <Button type="submit" fullWidth variant="contained" color="primary" className={classes.submit}>
+            <Button type="submit" fullWidth variant="contained" color="primary" sx={{margin: theme.spacing(3, 0, 2),}}>
               Create a new account
             </Button>
           </form>
-        </div>
-      </div>
+        </Box>
+      </Box>
       <Box mt={8}>
         <Copyright/>
       </Box>

@@ -23,7 +23,7 @@ export class InvalidJwt extends Error {
 
 export class JwtHelper {
 
-  private urlBase64Decode(str: string) {
+  private static urlBase64Decode(str: string) {
     let output = str.replace(/-/g, '+').replace(/_/g, '/');
     switch (output.length % 4) {
       case 0:
@@ -50,7 +50,7 @@ export class JwtHelper {
 
       throw new Error('JWT must have 3 parts');
     }
-    const decoded = this.urlBase64Decode(parts[1]);
+    const decoded = JwtHelper.urlBase64Decode(parts[1]);
     if (!decoded) {
       throw new InvalidJwt('Cannot decode the token');
     }

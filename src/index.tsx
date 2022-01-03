@@ -1,9 +1,7 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import ReactDOM from 'react-dom';
 import {BrowserRouter, Route, Switch, useParams} from "react-router-dom";
-import {CssBaseline, ThemeProvider} from "@material-ui/core";
 import reportWebVitals from './reportWebVitals';
-import {initApplication} from "./Application";
 import theme from "./theme/theme";
 import {ExternalTemplateView} from "./view/template/ExternalView";
 import {Login} from "./view/external/Login";
@@ -17,10 +15,16 @@ import {MyProfile} from "./view/user/MyProfile";
 import {WikiDashboard} from "./view/wiki/WikiDashboard";
 import {WikiJoinView} from "./view/wiki/WikiJoinView";
 import './i18n';
+import {RecoilRoot, useRecoilState} from "recoil";
+import {App} from "./App";
+import {wikiIdAtom} from "./atom/WikiAtom";
+import {articleIdAtom} from "./atom/ArticleAtom";
+import {CssBaseline, ThemeProvider} from "@mui/material";
 
-initApplication()
-  .then(() => {
-    ReactDOM.render(
+ReactDOM.render(
+  <RecoilRoot>
+    <App/>
+    <React.StrictMode>
       <BrowserRouter forceRefresh={true} keyLength={20}>
         <ThemeProvider theme={theme}>
           <CssBaseline/>
@@ -37,9 +41,10 @@ initApplication()
           </Switch>
         </ThemeProvider>
       </BrowserRouter>
-      , document.getElementById("root")
-    );
-  });
+    </React.StrictMode>
+  </RecoilRoot>
+  , document.getElementById("root")
+);
 
 function loginPage() {
   return (<ExternalTemplateView><Login/></ExternalTemplateView>)
@@ -59,8 +64,15 @@ function myProfile() {
 
 function Welcome() {
   let {wikiId} = useParams<{ wikiId: string }>();
+  const [currentId, setWikiId] = useRecoilState(wikiIdAtom);
 
-  return (<WikiTemplateView wikiId={wikiId}><WikiDashboard wikiId={wikiId}/></WikiTemplateView>)
+  useEffect(() => {
+    if (currentId !== wikiId) {
+      setWikiId(wikiId);
+    }
+  }, [wikiId, setWikiId, currentId]);
+
+  return (<WikiTemplateView><WikiDashboard/></WikiTemplateView>)
 }
 
 function JoinWiki() {
@@ -70,15 +82,38 @@ function JoinWiki() {
 }
 
 function Article() {
-  let {articleId, wikiId} = useParams<{ articleId: string, wikiId: string }>();
+  const {articleId, wikiId} = useParams<{ articleId?: string, wikiId?: string }>();
 
-  return (<WikiTemplateView wikiId={wikiId} documentId={articleId}><ArticleView wikiId={wikiId} articleId={articleId}/></WikiTemplateView>)
+  const [currentId, setWikiId] = useRecoilState(wikiIdAtom);
+  const [currentArticleId, setArticleId] = useRecoilState(articleIdAtom);
+
+  useEffect(() => {
+    if (wikiId && currentId !== wikiId) {
+      setWikiId(wikiId);
+    }
+    if (articleId && currentArticleId !== articleId) {
+      setArticleId(articleId);
+    }
+  }, [articleId, currentArticleId, currentId, setArticleId, setWikiId, wikiId]);
+
+  return (<WikiTemplateView><ArticleView/></WikiTemplateView>)
 }
 
 function ArticleEditPage() {
   let {articleId, wikiId} = useParams<{ articleId: string, wikiId: string }>();
+  const [currentId, setWikiId] = useRecoilState(wikiIdAtom);
+  const [currentArticleId, setArticleId] = useRecoilState(articleIdAtom);
 
-  return (<WikiTemplateView wikiId={wikiId} documentId={articleId}><ArticleEdit wikiId={wikiId} articleId={articleId}/></WikiTemplateView>)
+  useEffect(() => {
+    if (currentId !== wikiId) {
+      setWikiId(wikiId);
+    }
+    if (currentArticleId !== articleId) {
+      setArticleId(articleId);
+    }
+  }, [articleId, currentArticleId, currentId, setArticleId, setWikiId, wikiId]);
+
+  return (<WikiTemplateView><ArticleEdit/></WikiTemplateView>)
 }
 
 // If you want to start measuring performance in your app, pass a function

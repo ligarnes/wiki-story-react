@@ -1,6 +1,6 @@
 import React, {FunctionComponent} from "react";
 import ReactMarkdown from "react-markdown"
-import {Box, Paper} from "@material-ui/core";
+import {Box, Paper} from "@mui/material";
 import {ParagraphContent} from "../../../../model/ArticleContent";
 import {components} from "../../../generic/markdown/ImageExtensionRenderer";
 

@@ -1,94 +1,57 @@
-import React, {FunctionComponent, useEffect, useState} from "react";
+import React, {FunctionComponent} from "react";
 import {
   Avatar,
   Box,
-  Button,
   Card,
   CardContent,
   CardHeader,
   Divider,
+  List,
   ListItem,
   ListItemAvatar,
   ListItemText
-} from "@material-ui/core";
-import {getPlayer, Group, WikiMinimal} from "../../../model/Wiki";
+} from "@mui/material";
 import {UserProfileMinimal} from "../../../service/user/UserService";
-import {getApplication} from "../../../Application";
-import {RequestException} from "../../../service/QueryEngine";
-import {TextFieldCopy} from "../../generic/TextFieldCopy";
-import {canAdmin} from "../../../model/Permission";
-import {DangerButton} from "../../generic/DangerButton";
 import {useTranslation} from "react-i18next";
+import {Group} from "../../../atom/WikiAtom";
+import {InvitationLink} from "./InvitationLink";
 
 export interface Props {
-  wiki: WikiMinimal;
   group: Group;
-  generateLink: () => void;
-  deleteLink: () => void;
+  users: Array<UserProfileMinimal>;
 }
 
 export const GroupCard: FunctionComponent<Props> = (props: Props) => {
-  const {t} = useTranslation();
-  const {group, wiki} = props;
+  const {t, ready} = useTranslation();
+  const {group, users} = props;
 
-  const [users, setUsers] = useState([] as Array<UserProfileMinimal>);
-
-  useEffect(() => {
-    if (group.members.length > 0) {
-      getApplication().serviceLocator.userService.getUsers(group.members)
-        .then((users) => {
-          setUsers(users);
-        })
-        .catch((e: RequestException) => {
-          getApplication().notificationManager.errorNotification(['Failed to retrieved the users', e.message]);
-        });
+  const content = group.members.map(m => users.find(u => u.userId === m.userId)).map(u => {
+    if (u) {
+      return (
+        <ListItem key={`item-${group.name}-${u.userId}`}>
+          <ListItemAvatar>
+            <Avatar src={u.imageUrl}/>
+          </ListItemAvatar>
+          <ListItemText primary={u.username}/>
+        </ListItem>)
     }
-  }, [group, group.members]);
+    return <></>
+  });
 
-  let invitationLinkItem = (<></>);
-  if (group.invitationKey) {
-    const currentUrl = window.location.protocol + '//' + window.location.host;
-    const invitationLink = `${currentUrl}/wiki/${wiki.id}/join/${group.invitationKey}`;
-    invitationLinkItem = (
-      <>
-        <ListItem>
-          <TextFieldCopy text={invitationLink}/>
-        </ListItem>
-        <ListItem>
-          <DangerButton color="secondary" variant="contained" onClick={props.deleteLink}>Delete invitation
-            link</DangerButton>
-        </ListItem>
-      </>
-    )
-  } else {
-    const player = getPlayer(wiki);
-    const isAdmin = canAdmin(player, wiki);
-    if (isAdmin) {
-      invitationLinkItem = (
-        <ListItem>
-          <Button variant="contained" color="primary" onClick={props.generateLink}>Generate invitation link</Button>
-        </ListItem>
-      )
-    }
-  }
+  const contentList = content.length > 0 ? (<List> {content} </List>) : <></>;
 
   return (
     <>
-      <Card>
-        <CardHeader title={t(group.name)}/>
-        <CardContent>
-          {users.map(u => {
-            return (
-              <ListItem key={u.userId}>
-                <ListItemAvatar>
-                  <Avatar src={u.imageUrl}/>
-                </ListItemAvatar>
-                <ListItemText primary={u.username}/>
-              </ListItem>)
-          })}
-          <Box my={2}> <Divider variant="middle"/> </Box>
-          {invitationLinkItem}
-        </CardContent>
-      </Card>
+      {
+        !ready ? <></> :
+          <Card>
+            <CardHeader title={t(group.name)}/>
+            <CardContent>
+              {contentList}
+              <Box my={2}> <Divider variant="middle"/> </Box>
+              <InvitationLink group={group}/>
+            </CardContent>
+          </Card>
+      }
     </>);
 }

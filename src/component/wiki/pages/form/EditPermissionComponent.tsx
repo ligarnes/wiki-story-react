@@ -1,60 +1,86 @@
 import React, {FunctionComponent, useEffect, useState} from "react";
-import {Box, createStyles, FormControl, Grid, InputLabel, MenuItem, Select, Theme, Typography} from "@material-ui/core";
+import {Box, FormControl, Grid, InputLabel, MenuItem, Select, Typography} from "@mui/material";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {Permission} from "../../../../model/v2/Wiki";
 import {
   getPermissionIcon,
-  Permission,
+  getRole,
   PERMISSION_ADMIN,
   PERMISSION_NONE,
   PERMISSION_READ,
   PERMISSION_WRITE
-} from "../../../../model/Permission";
-import {WikiMinimal} from "../../../../model/Wiki";
-import {makeStyles} from "@material-ui/core/styles";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+} from "../../../../model/v2/Permission";
+import {SelectChangeEvent} from "@mui/material/Select/SelectInput";
 
-const useStyles = makeStyles((theme: Theme) =>
-  createStyles({
-    formControl: {
-      minWidth: 120,
-    }
-  }),
-);
-
-export interface Props {
-  wikiInfo: WikiMinimal;
-  permissionList: Array<Permission>;
-  onChange: (permissionList: Array<Permission>) => void;
+export interface Entity {
+  id: string,
+  name: string
 }
 
-interface PermissionDesc extends Permission {
-  title: string;
+export interface Props {
+  permission: Permission;
+  entities: Entity[];
+  onChange: (permission: Permission) => void;
+}
+
+interface EntityPermission {
+  entityId: string
+  name: string;
+  role: 'admin' | 'writer' | 'reader' | 'none';
+}
+
+
+function removeArray(array: string[], value: string) {
+  const idx = array.indexOf(value);
+  if (idx >= 0) {
+    array.slice(idx, idx + 1);
+  }
+}
+
+function newArray(array?: string[]) {
+  if (array) {
+    return [...array];
+  }
+  return [];
 }
 
 export const EditPermissionComponent: FunctionComponent<Props> = (props: Props) => {
-  const classes = useStyles();
-  const [permissionList, setPermissionList] = useState([] as Array<PermissionDesc>);
+  const [permissionList, setPermissionList] = useState([] as Array<EntityPermission>);
 
   useEffect(() => {
-    const permDesc = props.permissionList.map(perm => {
-      const title = perm.group ?
-        props.wikiInfo.groupList.find(grp => grp.name === perm.entityId)?.name
-        : "Single user";
+    const permDesc = props.entities.map(user => {
+      const role = getRole(user.id, props.permission);
       return {
-        group: perm.group,
-        permission: perm.permission,
-        entityId: perm.entityId,
-        title: title
-      } as PermissionDesc;
+        entityId: user.id,
+        name: user.name,
+        role: role
+      } as EntityPermission;
     });
     setPermissionList(permDesc);
-  }, [props.wikiInfo, props.permissionList]);
+  }, [props.entities, props.permission]);
 
-  const handleChange = (event: React.ChangeEvent<{ value: any }>, permission: PermissionDesc) => {
-    permission.permission = event.target.value;
-    setPermissionList([...permissionList]);
-    props.onChange(permissionList.map(p => {
-      return {entityId: p.entityId, permission: p.permission, group: p.group} as Permission
-    }));
+  const handleChange = (permission: EntityPermission, event?: SelectChangeEvent<"admin" | "writer" | "reader" | "none">) => {
+    const role = event?.target.value;
+
+    const admins = newArray(props.permission.admins);
+    const writes = newArray(props.permission.writes);
+    const reads = newArray(props.permission.reads);
+
+    removeArray(admins, permission.entityId);
+    removeArray(writes, permission.entityId);
+    removeArray(reads, permission.entityId);
+    switch (role) {
+      case PERMISSION_ADMIN:
+        admins.push(permission.entityId);
+        break;
+      case PERMISSION_WRITE:
+        writes.push(permission.entityId);
+        break;
+      case PERMISSION_READ:
+        reads.push(permission.entityId);
+        break;
+    }
+    props.onChange({admins: admins, writes: writes, reads: reads});
   }
 
   return (
@@ -63,17 +89,13 @@ export const EditPermissionComponent: FunctionComponent<Props> = (props: Props) 
         <Typography>Permissions</Typography>
       </Box>
       <Grid container direction="column" justifyContent="flex-start" alignItems="flex-start" spacing={2}>
-        {permissionList.map(permission => {
+        {permissionList.map(entityPermission => {
           return (
-            <Grid key={permission.entityId} item xs>
-              <FormControl variant="outlined" className={classes.formControl}>
-                <InputLabel>{permission.title}</InputLabel>
-                <Select label={permission.title} value={permission.permission}
-                        onChange={(event) => handleChange(event, permission)}>
-                  <MenuItem value={PERMISSION_NONE}>
-                    <Box component={"span"} mr={3}><FontAwesomeIcon icon={getPermissionIcon(PERMISSION_NONE)}/></Box>
-                    <em>None</em>
-                  </MenuItem>
+            <Grid key={entityPermission.entityId} item xs>
+              <FormControl variant="outlined" sx={{minWidth: 120}}>
+                <InputLabel>{entityPermission.name}</InputLabel>
+                <Select label={entityPermission.role} value={entityPermission.role}
+                        onChange={(event) => handleChange(entityPermission, event)}>
                   <MenuItem value={PERMISSION_ADMIN}>
                     <Box component={"span"} mr={3}><FontAwesomeIcon icon={getPermissionIcon(PERMISSION_ADMIN)}/></Box>
                     Admin
@@ -85,6 +107,10 @@ export const EditPermissionComponent: FunctionComponent<Props> = (props: Props) 
                   <MenuItem value={PERMISSION_READ}>
                     <Box component={"span"} mr={3}><FontAwesomeIcon icon={getPermissionIcon(PERMISSION_READ)}/></Box>
                     Read
+                  </MenuItem>
+                  <MenuItem value={PERMISSION_NONE}>
+                    <Box component={"span"} mr={3}><FontAwesomeIcon icon={getPermissionIcon(PERMISSION_NONE)}/></Box>
+                    <em>None</em>
                   </MenuItem>
                 </Select>
               </FormControl>

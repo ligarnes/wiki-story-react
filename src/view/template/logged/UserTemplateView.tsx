@@ -1,50 +1,16 @@
 import React, {FunctionComponent} from "react";
-import {makeStyles} from "@material-ui/core/styles";
 import {TopMenu} from "../../../component/menu/TopMenu";
 import {DRAWER_WIDTH, DrawerComponent} from "../../../component/menu/DrawerComponent";
-import clsx from "clsx";
 import {SnackNotificationComponent} from "../../../component/SnackNotificationComponent";
-import {getApplication} from "../../../Application";
 import {faBook, faUser} from "@fortawesome/free-solid-svg-icons";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
+import {Box, List, ListItem, ListItemIcon, ListItemText} from "@mui/material";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import ListItemText from "@material-ui/core/ListItemText";
-import {IconProp} from "@fortawesome/fontawesome-svg-core";
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    display: "flex"
-  },
-  drawerHeader: {
-    display: "flex",
-    alignItems: "center",
-    padding: theme.spacing(0, 1),
-    // Necessary for content to be below app bar
-    ...theme.mixins.toolbar,
-    justifyContent: "flex-end"
-  },
-  content: {
-    flexGrow: 1,
-    padding: theme.spacing(3),
-    transition: theme.transitions.create("margin", {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen
-    }),
-    marginLeft: -DRAWER_WIDTH
-  },
-  contentShift: {
-    transition: theme.transitions.create("margin", {
-      easing: theme.transitions.easing.easeOut,
-      duration: theme.transitions.duration.enteringScreen
-    }),
-    marginLeft: 0
-  }
-}));
+import {SxProps} from "@mui/system";
+import {Theme, useTheme} from "@mui/material/styles";
+import {IconDefinition} from "@fortawesome/fontawesome-common-types";
 
 interface DrawerMenuItem {
-  icon: IconProp;
+  icon: IconDefinition;
   text: string;
   link: string;
 }
@@ -55,8 +21,9 @@ interface DrawerMenuItem {
  * @constructor
  */
 export const UserTemplateView: FunctionComponent<unknown> = (props: React.PropsWithChildren<unknown>) => {
-  const classes = useStyles();
+  const theme = useTheme();
   const [open, setOpen] = React.useState(true);
+
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -80,22 +47,47 @@ export const UserTemplateView: FunctionComponent<unknown> = (props: React.PropsW
     }
   );
 
+  const margin = open ? 0 : `${-DRAWER_WIDTH}px`;
+  const contentStyle: SxProps<Theme> = {
+    flexGrow: 1,
+    padding: theme.spacing(3),
+    transition: theme.transitions.create("margin", {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.leavingScreen
+    }),
+    marginLeft: margin,
+    ...(open && {
+      transition: theme.transitions.create("margin", {
+        easing: theme.transitions.easing.easeOut,
+        duration: theme.transitions.duration.enteringScreen
+      }),
+    })
+  };
+
+  const belowAppBar = {
+    display: "flex",
+    alignItems: "center",
+    padding: theme.spacing(0, 1),
+    // Necessary for content to be below app bar
+    ...theme.mixins.toolbar,
+    justifyContent: "flex-end"
+  };
+
   return (
-    <div className={classes.root}>
+    <Box sx={{display: "flex"}}>
       <TopMenu title="Wiki Story" isDrawerOpen={open} handleDrawerOpen={handleDrawerOpen}/>
       <DrawerComponent isDrawerOpen={open} handleDrawerClose={handleDrawerClose}>
         <List>
           {itemMenu}
         </List>
       </DrawerComponent>
-      <main className={clsx(classes.content, {[classes.contentShift]: open})}>
-        <div className={classes.drawerHeader}/>
+      <Box sx={contentStyle}>
+        <Box sx={belowAppBar}/>
         <div>
           {props.children}
-
-          <SnackNotificationComponent notificationManager={getApplication().notificationManager}/>
+          <SnackNotificationComponent/>
         </div>
-      </main>
-    </div>
+      </Box>
+    </Box>
   );
 }

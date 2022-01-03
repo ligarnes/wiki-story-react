@@ -1,5 +1,5 @@
 import React, {FunctionComponent} from "react";
-import {Avatar, Card, CardContent, CardHeader, Grid, Typography} from "@material-ui/core";
+import {Avatar, Card, CardContent, CardHeader, Grid, Typography} from "@mui/material";
 import {UserProfile} from "../service/user/UserService";
 import {format} from "date-fns";
 

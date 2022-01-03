@@ -1,5 +1,4 @@
 import {BackendQueryEngine} from "../QueryEngine";
-import {getApplication} from "../../Application";
 
 export interface UserProfile {
   userId: string,
@@ -38,11 +37,5 @@ export default class UserService {
     return this.queryEngine.get(`/user?ids=${userIds.join(",")}`).then(e => {
       return e as Array<UserProfileMinimal>;
     });
-  }
-
-
-  getCurrentUserProfile = (): Promise<UserProfile> => {
-    const userId = getApplication().serviceLocator.loginService.getUserId();
-    return this.getUserProfile(userId);
   }
 }

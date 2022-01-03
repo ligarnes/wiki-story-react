@@ -1,12 +1,15 @@
 import React, {FunctionComponent} from 'react';
 import {useHistory} from "react-router";
-import {getApplication} from "../../Application";
+import {useRecoilValue} from "recoil";
+import {serviceLocatorAtom} from "../../atom/ServiceLocatorAtom";
 
 export const ExternalTemplateView: FunctionComponent<unknown> = (props: React.PropsWithChildren<unknown>) => {
   const history = useHistory();
-  if (getApplication().serviceLocator.loginService.isLogged()) {
+  const serviceLocator = useRecoilValue(serviceLocatorAtom);
+
+  if (serviceLocator?.loginService.isLogged()) {
     history.push('/my-wikis');
   }
-  
+
   return (<div> {props.children} </div>);
 }

@@ -1,8 +1,10 @@
 import React, {FunctionComponent, useEffect, useState} from "react";
-import {Box, CircularProgress, Container, Paper, Typography} from "@material-ui/core";
-import {getApplication} from "../../Application";
+import {Box, CircularProgress, Container, Paper, Typography} from "@mui/material";
 import {RequestException} from "../../service/QueryEngine";
 import {useHistory} from "react-router";
+import {useRecoilValue, useSetRecoilState} from "recoil";
+import {serviceLocatorAtom} from "../../atom/ServiceLocatorAtom";
+import {addNotificationSelector} from "../../atom/NotificationAtom";
 
 export interface Props {
   wikiId: string;
@@ -18,20 +20,22 @@ export const WikiJoinView: FunctionComponent<Props> = (props: Props) => {
   const history = useHistory();
 
   const [state, setState] = useState({loading: true, error: false, message: ""});
+  const serviceLocator = useRecoilValue(serviceLocatorAtom);
+  const addNotification = useSetRecoilState(addNotificationSelector);
 
   useEffect(() => {
-    getApplication().serviceLocator.wikiService.joinInvitationLink(wikiId, invitationKey)
+    serviceLocator?.wikiService.joinInvitationLink(wikiId, invitationKey)
       .then(() => {
-        getApplication().notificationManager.successNotification("You have joined the Wiki !")
+        addNotification({severity: "success", title: "Success", text: "You have joined the Wiki !"});
         setState({loading: false, error: false, message: ""});
         setTimeout(() => history.push(`//wiki/${wikiId}/`), 5000);
       })
       .catch((e: RequestException) => {
-        getApplication().notificationManager.errorNotification(['You cannot join the wiki.', e.message]);
+        addNotification({severity: "error", title: "Error", text: "You cannot join the wiki."});
         setState({loading: false, error: true, message: e.message});
-        setTimeout(() => history.push(`/my-wikis`), 5000);
+        setTimeout(() => history.push(`/my-wikis`), 30000);
       });
-  }, [history, invitationKey, wikiId]);
+  }, [history, invitationKey, wikiId, addNotification, serviceLocator?.wikiService]);
 
   if (state.loading) {
     return (

@@ -1,30 +1,10 @@
 import React, {FunctionComponent, PropsWithChildren} from "react";
-import {makeStyles, useTheme} from "@material-ui/core/styles";
-import Drawer from "@material-ui/core/Drawer";
-import Divider from "@material-ui/core/Divider";
-import IconButton from "@material-ui/core/IconButton";
-import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
-import ChevronRightIcon from "@material-ui/icons/ChevronRight";
+import {Box, Divider, Drawer, IconButton} from "@mui/material";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import {useTheme} from '@mui/material/styles';
 
 export const DRAWER_WIDTH = 320;
-
-const useStyles = makeStyles(theme => ({
-  drawer: {
-    width: DRAWER_WIDTH,
-    flexShrink: 0
-  },
-  drawerPaper: {
-    width: DRAWER_WIDTH
-  },
-  drawerHeader: {
-    display: "flex",
-    alignItems: "center",
-    padding: theme.spacing(0, 1),
-    // Necessary for content to be below app bar
-    ...theme.mixins.toolbar,
-    justifyContent: "flex-end"
-  }
-}));
 
 export interface Props {
   isDrawerOpen: boolean;
@@ -38,17 +18,33 @@ export interface Props {
  * @constructor
  */
 export const DrawerComponent: FunctionComponent<Props> = (props: PropsWithChildren<Props>) => {
-  const classes = useStyles();
   const theme = useTheme();
 
+  const drawerStyle = {
+    width: DRAWER_WIDTH,
+    flexShrink: 0,
+    '& .MuiDrawer-paper': {
+      width: DRAWER_WIDTH,
+      boxSizing: 'border-box',
+    },
+  }
+
+  const iconBoxStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    padding: theme.spacing(0, 1),
+    // necessary for content to be below app bar
+    ...theme.mixins.toolbar,
+    justifyContent: 'flex-end',
+  };
+
   return (
-    <Drawer className={classes.drawer} variant="persistent" anchor="left" open={props.isDrawerOpen}
-            classes={{paper: classes.drawerPaper}}>
-      <div className={classes.drawerHeader}>
+    <Drawer sx={drawerStyle} variant="persistent" anchor="left" open={props.isDrawerOpen}>
+      <Box sx={iconBoxStyle}>
         <IconButton onClick={props.handleDrawerClose}>
-          {theme.direction === "ltr" ? <ChevronLeftIcon/> : <ChevronRightIcon/>}
+          {theme.direction === 'ltr' ? <ChevronLeftIcon/> : <ChevronRightIcon/>}
         </IconButton>
-      </div>
+      </Box>
       <Divider/>
       {props.children}
     </Drawer>
